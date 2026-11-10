@@ -151,7 +151,8 @@ const captions = saisonBilder.map((b) => [kurzDatum(b.datum), b.text].filter(Boo
     min-height: min(88svh, 860px); display: flex; align-items: flex-end;
   }
   .hero__media { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
-  .hero__media :global(img), .hero__media video { width: 100%; height: 100%; object-fit: cover; object-position: 42% 60%; }
+  .hero__media :global(img), .hero__media video { width: 100%; height: 100%; object-fit: cover; object-position: 70% 50%; }
+  @media (max-width: 700px) { .hero__media :global(img), .hero__media video { object-position: 84% 50%; } }
   .hero__media::after {
     content: ''; position: absolute; inset: 0;
     background:
