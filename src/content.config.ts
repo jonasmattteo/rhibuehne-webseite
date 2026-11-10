@@ -60,7 +60,34 @@ const startseite = defineCollection({
   loader: glob({ pattern: 'startseite.json', base: './src/content/einstellungen' }),
   schema: ({ image }) =>
     z.object({
-      aktuell: z.object({ titel: z.string(), text: z.string().default('') }),
+      titelbild: z
+        .object({
+          bild: image(),
+          video: z.string().optional(),
+          bildnachweis: z.string().optional(),
+          bildnachweisLink: z.string().optional(),
+        })
+        .optional(),
+      aktuell: z.object({
+        titel: z.string(),
+        text: z.string().default(''),
+        premiere: z.coerce.date().optional(),
+      }),
+      saison: z
+        .object({
+          titel: z.string().default('Hinter den Kulissen'),
+          text: z.string().optional(),
+          bilder: z
+            .array(
+              z.object({
+                bild: image(),
+                text: z.string().optional(),
+                datum: z.coerce.date().optional(),
+              }),
+            )
+            .default([]),
+        })
+        .optional(),
       hinweise: z
         .array(
           z.object({

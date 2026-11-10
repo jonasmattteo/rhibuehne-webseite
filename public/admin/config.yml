@@ -164,12 +164,44 @@ collections:
         label: Startseite
         file: src/content/einstellungen/startseite.json
         fields:
+          - label: Titelbild / Video (ganz oben, in Farbe)
+            name: titelbild
+            widget: object
+            collapsed: true
+            fields:
+              - { label: Bild, name: bild, widget: image, hint: Querformat, mindestens 2000 px breit. Wird auch als Standbild für das Video verwendet. }
+              - label: Video (optional)
+                name: video
+                widget: file
+                required: false
+                media_folder: /public/uploads/video
+                public_folder: /uploads/video
+                hint: MP4, stumm, 15–20 Sekunden, möglichst unter 8 MB. Läuft in Endlosschleife.
+              - { label: Bildnachweis, name: bildnachweis, widget: string, required: false, hint: 'z. B. „Foto: Max Muster“ – bei fremden Bildern Pflicht.' }
+              - { label: Link zum Bildnachweis, name: bildnachweisLink, widget: string, required: false }
           - label: Aktuell (grosser Titel oben)
             name: aktuell
             widget: object
             fields:
               - { label: Titel, name: titel, widget: string }
               - { label: Text, name: text, widget: text, hint: Absätze mit einer Leerzeile trennen. }
+              - { label: Premiere (für Countdown), name: premiere, widget: datetime, time_format: false, date_format: DD.MM.YYYY, format: YYYY-MM-DD, required: false }
+          - label: Saison – Bilder hinter den Kulissen (schwarzweiss)
+            name: saison
+            widget: object
+            fields:
+              - { label: Überschrift, name: titel, widget: string, default: Hinter den Kulissen }
+              - { label: Text, name: text, widget: text, required: false }
+              - label: Bilder
+                name: bilder
+                widget: list
+                required: false
+                summary: '{{fields.datum}} – {{fields.text}}'
+                hint: In Farbe hochladen – die Startseite zeigt sie automatisch schwarzweiss. Nach der Saison dieselben Bilder einfach in die Galerie des Stücks übernehmen.
+                fields:
+                  - { label: Bild, name: bild, widget: image }
+                  - { label: Bildunterschrift, name: text, widget: string, required: false }
+                  - { label: Datum, name: datum, widget: datetime, time_format: false, date_format: DD.MM.YYYY, format: YYYY-MM-DD, required: false }
           - label: Hinweise / Aktuelles
             name: hinweise
             widget: list

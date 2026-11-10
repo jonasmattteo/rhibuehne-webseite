@@ -1,19 +1,43 @@
 ---
 import Base from '../layouts/Base.astro';
 import StueckCard from '../components/StueckCard.astro';
+import Gallery from '../components/Gallery.astro';
 import { Image, getImage } from 'astro:assets';
 import wasser from '../assets/brand/wasser.jpg';
 import { getEinstellung, getStuecke, url } from '../lib/utils';
 
 const start = await getEinstellung('startseite');
+const allgemein = await getEinstellung('allgemein');
 const stuecke = (await getStuecke()).filter((s) => !s.data.zeitraum).slice(0, start.anzahlStuecke);
 const [neuestes] = stuecke;
-const hero = await getImage({ src: wasser, width: 1920, format: 'webp', quality: 70 });
+
+const heroBild = start.titelbild?.bild ?? wasser;
+const heroVideo = start.titelbild?.video?.trim() || undefined;
+const poster = await getImage({ src: heroBild, width: 1920, format: 'webp', quality: 72 });
+
 const absaetze = (t: string) => t.split(/\n\s*\n/).filter(Boolean);
+
+const premiere = start.aktuell.premiere;
+const tageBisPremiere = premiere ? Math.ceil((premiere.getTime() - Date.now()) / 86_400_000) : undefined;
+const premiereText = premiere?.toLocaleDateString('de-CH', { weekday: 'long', day: 'numeric', month: 'long' });
+
+const saison = start.saison;
+const saisonBilder = saison?.bilder ?? [];
+const kurzDatum = (d?: Date) => d?.toLocaleDateString('de-CH', { day: 'numeric', month: 'short' });
+const captions = saisonBilder.map((b) => [kurzDatum(b.datum), b.text].filter(Boolean).join(' · ') || undefined);
 ---
 
-<Base title="Home">
-  <section class="hero" style={`--bg: url('${hero.src}')`}>
+<Base title="Home" image={heroBild}>
+  <section class="hero">
+    <div class="hero__media" aria-hidden="true" style={`--poster: url('${poster.src}')`}>
+      {heroVideo ? (
+        <video autoplay muted loop playsinline preload="metadata" poster={poster.src} data-hero-video>
+          <source src={url(heroVideo)} type={heroVideo.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+        </video>
+      ) : (
+        <Image src={heroBild} alt="" widths={[640, 1024, 1600, 2400]} sizes="100vw" loading="eager" fetchpriority="high" />
+      )}
+    </div>
     <div class="wrap hero__inner">
       <p class="hero__kicker">Rhibühne Eglisau · Laientheater seit 1904</p>
       <h1>{start.aktuell.titel}</h1>
@@ -25,11 +49,47 @@ const absaetze = (t: string) => t.split(/\n\s*\n/).filter(Boolean);
         {neuestes && <a class="btn btn--ghost-light" href={url(`/archiv/${neuestes.id}/`)}>Zuletzt gespielt: {neuestes.data.titel}</a>}
       </div>
     </div>
-    <div class="checker" aria-hidden="true"></div>
+    {start.titelbild?.bildnachweis && (
+      start.titelbild.bildnachweisLink
+        ? <a class="hero__credit" href={start.titelbild.bildnachweisLink} target="_blank" rel="noopener">{start.titelbild.bildnachweis}</a>
+        : <span class="hero__credit">{start.titelbild.bildnachweis}</span>
+    )}
   </section>
+  <div class="checker" aria-hidden="true"></div>
+
+  {saison && (
+    <section class="section saison">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="kicker">{start.aktuell.titel}</span>
+            <h2>{saison.titel}</h2>
+            {saison.text && <p class="saison__text">{saison.text}</p>}
+          </div>
+          {tageBisPremiere !== undefined && tageBisPremiere > 0 && (
+            <div class="countdown" title={`Premiere: ${premiereText}`}>
+              <strong>{tageBisPremiere}</strong>
+              <span>{tageBisPremiere === 1 ? 'Tag' : 'Tage'} bis zur Premiere</span>
+            </div>
+          )}
+        </div>
+        {saisonBilder.length > 0 ? (
+          <Gallery images={saisonBilder.map((b) => b.bild)} captions={captions} title={saison.titel} mono showHeading={false} />
+        ) : (
+          <div class="saison__leer">
+            <div class="saison__frames" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div>
+              <p class="saison__leer-titel">Die ersten Schnappschüsse folgen bald.</p>
+              <p>Sobald die Proben laufen, zeigen wir hier Bilder hinter den Kulissen.{allgemein.instagram && <> Bis dahin: <a href={allgemein.instagram} target="_blank" rel="noopener">folge uns auf Instagram</a>.</>}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  )}
 
   {start.hinweise.length > 0 && (
-    <section class="section">
+    <section class="section section--tint">
       <div class="wrap hinweise">
         {start.hinweise.map((h) => (
           <article class="hinweis">
@@ -42,8 +102,7 @@ const absaetze = (t: string) => t.split(/\n\s*\n/).filter(Boolean);
               <span class="kicker">Aktuell</span>
               <h2>{h.titel}</h2>
               {h.text && absaetze(h.text).map((p) => <p>{p}</p>)}
-              {h.link && <a class="btn" href={url(h.link)}>Mehr erfahren</a>}
-              {!h.link && <a class="btn btn--ghost" href={url('/kontakt')}>Kontakt aufnehmen</a>}
+              {h.link ? <a class="btn" href={url(h.link)}>Mehr erfahren</a> : <a class="btn btn--ghost" href={url('/kontakt')}>Kontakt aufnehmen</a>}
             </div>
           </article>
         ))}
@@ -51,7 +110,7 @@ const absaetze = (t: string) => t.split(/\n\s*\n/).filter(Boolean);
     </section>
   )}
 
-  <section class="section section--tint">
+  <section class="section">
     <div class="wrap">
       <div class="section-head">
         <div>
@@ -66,7 +125,7 @@ const absaetze = (t: string) => t.split(/\n\s*\n/).filter(Boolean);
     </div>
   </section>
 
-  <section class="section">
+  <section class="section section--tint">
     <div class="wrap about">
       <div>
         <span class="kicker">Wer wir sind</span>
@@ -88,27 +147,55 @@ const absaetze = (t: string) => t.split(/\n\s*\n/).filter(Boolean);
 
 <style>
   .hero {
-    position: relative; color: var(--white); isolation: isolate;
-    background: linear-gradient(180deg, rgb(20 19 17 / 0.55), rgb(20 19 17 / 0.85)), var(--bg) center / cover no-repeat, var(--ink);
+    position: relative; isolation: isolate; color: var(--white); background: var(--ink);
+    min-height: min(88svh, 860px); display: flex; align-items: flex-end;
   }
-  .hero__inner { padding: clamp(72px, 12vw, 150px) 0 clamp(56px, 9vw, 110px); max-width: var(--wrap); }
-  .hero__kicker { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--yellow); margin-bottom: 1rem; }
-  .hero h1 { font-size: clamp(2.8rem, 9vw, 6.5rem); font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.3em; color: var(--yellow); }
-  .hero__text { max-width: 58ch; font-size: clamp(1.05rem, 1.6vw, 1.25rem); color: #ece7da; }
+  .hero__media { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+  .hero__media :global(img), .hero__media video { width: 100%; height: 100%; object-fit: cover; object-position: 42% 60%; }
+  .hero__media::after {
+    content: ''; position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgb(20 19 17 / 0.35) 0%, rgb(20 19 17 / 0) 30%, rgb(20 19 17 / 0.15) 50%, rgb(20 19 17 / 0.88) 100%),
+      linear-gradient(90deg, rgb(20 19 17 / 0.55) 0%, rgb(20 19 17 / 0) 65%);
+  }
+  .hero__inner { padding: 140px 0 clamp(48px, 7vw, 88px); }
+  .hero__kicker { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--yellow); margin-bottom: 0.8rem; text-shadow: 0 1px 8px rgb(0 0 0 / 0.5); }
+  .hero h1 { font-size: clamp(3rem, 10vw, 7.5rem); font-weight: 800; letter-spacing: -0.03em; line-height: 0.95; margin-bottom: 0.3em; color: var(--yellow); text-shadow: 0 2px 30px rgb(0 0 0 / 0.35); }
+  .hero__text { max-width: 56ch; font-size: clamp(1.05rem, 1.6vw, 1.22rem); color: #f3efe4; text-shadow: 0 1px 12px rgb(0 0 0 / 0.5); }
   .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 1.6rem; }
-  .btn--ghost-light { background: transparent; color: var(--white); border-color: rgb(255 255 255 / 0.5); }
+  .btn--ghost-light { background: rgb(20 19 17 / 0.25); color: var(--white); border-color: rgb(255 255 255 / 0.6); backdrop-filter: blur(4px); }
   .btn--ghost-light:hover { background: var(--white); color: var(--ink); border-color: var(--white); }
-  .hero .checker { --s: 12px; }
+  .hero__credit { position: absolute; right: 12px; bottom: 8px; font-size: 0.7rem; color: rgb(255 255 255 / 0.65); text-decoration: none; }
+  .hero__credit:hover { color: var(--white); text-decoration: underline; }
+  .checker { --s: 12px; }
+  @media (prefers-reduced-motion: reduce) { .hero__media video { display: none; } .hero__media { background: var(--poster, none) center / cover; } }
+
+  .section-head { display: flex; justify-content: space-between; align-items: end; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+  .section-head h2 { margin: 0.25em 0 0; }
+  .section--tint { background: var(--paper-2); }
+
+  .saison__text { color: var(--muted); margin: 0.6em 0 0; max-width: 56ch; }
+  .countdown { background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: 14px 20px; display: flex; align-items: baseline; gap: 10px; }
+  .countdown strong { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; color: var(--yellow); }
+  .countdown span { font-size: 0.9rem; }
+
+  .saison__leer {
+    display: grid; grid-template-columns: auto 1fr; gap: clamp(20px, 4vw, 40px); align-items: center;
+    background: var(--ink); color: #d9d4c7; border-radius: var(--radius); padding: clamp(24px, 4vw, 40px);
+  }
+  .saison__leer p { margin: 0; }
+  .saison__leer a { color: var(--yellow); }
+  .saison__leer-titel { font-family: var(--font-display); font-size: clamp(1.3rem, 2.4vw, 1.7rem); font-weight: 650; color: var(--white); margin-bottom: 0.4em !important; }
+  .saison__frames { display: flex; gap: 6px; }
+  .saison__frames span { width: 54px; height: 72px; border-radius: 6px; background: repeating-linear-gradient(135deg, #3a3833 0 6px, #2e2c28 6px 12px); }
+  .saison__frames span:nth-child(2) { transform: translateY(-8px); }
+  @media (max-width: 560px) { .saison__leer { grid-template-columns: 1fr; } }
 
   .hinweise { display: grid; gap: 32px; }
   .hinweis { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(24px, 5vw, 64px); align-items: center; }
-  .hinweis__media :global(img) { border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-height: 620px; object-fit: contain; background: var(--paper-2); }
+  .hinweis__media :global(img) { border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-height: 620px; object-fit: contain; background: var(--paper); }
   .hinweis__body h2 { font-size: clamp(2rem, 4.5vw, 3.2rem); margin-top: 0.3em; }
   @media (max-width: 760px) { .hinweis { grid-template-columns: 1fr; } }
-
-  .section--tint { background: var(--paper-2); }
-  .section-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
-  .section-head h2 { margin: 0.25em 0 0; }
 
   .about { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: clamp(24px, 6vw, 80px); align-items: center; }
   .about__links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 1.2rem; }

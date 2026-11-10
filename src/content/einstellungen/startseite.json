@@ -1,7 +1,18 @@
 {
+  "titelbild": {
+    "bild": "../../assets/uploads/startseite/eglisau-am-rhein.jpg",
+    "video": "",
+    "bildnachweis": "Foto: Uwelino, CC BY-SA 4.0, via Wikimedia Commons",
+    "bildnachweisLink": "https://commons.wikimedia.org/wiki/File:Blick_auf_Eglisau_am_Rhein.jpg"
+  },
   "aktuell": {
     "titel": "Saison 2027",
     "text": "Wir sind bereits wieder fleissig am proben. Seid gespannt auf unser neues Stück. In Kürze werden wir euch näheres zum Stück bekannt geben und ein paar Schnappschüsse aus den Proben ergänzen."
+  },
+  "saison": {
+    "titel": "Hinter den Kulissen",
+    "text": "Schnappschüsse aus den Proben – in Farbe gibt's sie nach der Saison im Archiv.",
+    "bilder": []
   },
   "hinweise": [
     {
