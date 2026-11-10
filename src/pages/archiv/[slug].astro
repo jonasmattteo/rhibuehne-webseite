@@ -1,0 +1,33 @@
+---
+import EntryDetail from '../../components/EntryDetail.astro';
+import { render } from 'astro:content';
+import { getStuecke, teaser } from '../../lib/utils';
+
+export async function getStaticPaths() {
+  const stuecke = await getStuecke();
+  return stuecke.map((stueck, i) => ({
+    params: { slug: stueck.id },
+    props: { stueck, prev: stuecke[i - 1], next: stuecke[i + 1] },
+  }));
+}
+
+const { stueck, prev, next } = Astro.props;
+const { Content } = await render(stueck);
+const { titel, jahr, zeitraum, bild, galerie } = stueck.data;
+const nav = (s?: typeof stueck) => s && { href: `/archiv/${s.id}/`, label: `${s.data.zeitraum ?? s.data.jahr}: ${s.data.titel}` };
+---
+
+<EntryDetail
+  title={titel}
+  meta={`Saison ${zeitraum ?? jahr}`}
+  kicker="Archiv"
+  backHref="/archiv"
+  backLabel="Alle Stücke"
+  bild={bild}
+  galerie={galerie}
+  description={teaser(stueck.body, 160)}
+  prev={nav(prev)}
+  next={nav(next)}
+>
+  <Content />
+</EntryDetail>

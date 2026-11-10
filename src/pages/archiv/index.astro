@@ -1,0 +1,31 @@
+---
+import Page from '../../layouts/Page.astro';
+import StueckCard from '../../components/StueckCard.astro';
+import { getStuecke } from '../../lib/utils';
+
+const stuecke = await getStuecke();
+const jahrzehnte = Map.groupBy(stuecke, (s) => `${Math.floor(s.data.jahr / 10) * 10}er`);
+---
+
+<Page title="Archiv" kicker="Theater" lead="Alle Stücke der Rhibühne Eglisau – mit Besetzung, Inhalt und Bildergalerien.">
+  <nav class="jump" aria-label="Nach Jahrzehnt springen">
+    {[...jahrzehnte.keys()].map((j) => <a href={`#j-${j}`}>{j.replace(/^(\d{4})/, (_, y) => `${y}`)}</a>)}
+  </nav>
+  {[...jahrzehnte.entries()].map(([j, liste]) => (
+    <section class="decade" id={`j-${j}`}>
+      <h2>{j.replace('er', 'er-Jahre')}</h2>
+      <div class="grid">
+        {liste.map((s) => <StueckCard stueck={s} />)}
+      </div>
+    </section>
+  ))}
+</Page>
+
+<style>
+  .jump { display: flex; flex-wrap: wrap; gap: 8px; margin: -8px 0 24px; }
+  .jump a { text-decoration: none; padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--ink); font-weight: 600; font-size: 0.9rem; }
+  .jump a:hover { background: var(--ink); color: var(--yellow); }
+  .decade { margin-top: 40px; scroll-margin-top: 100px; }
+  .decade h2 { display: flex; align-items: center; gap: 14px; }
+  .decade h2::after { content: ''; flex: 1; height: 2px; background: var(--line); }
+</style>

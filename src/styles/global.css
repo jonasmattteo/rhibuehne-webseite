@@ -1,0 +1,156 @@
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+
+/* ------------------------------------------------------------------
+   Rhibühne Eglisau – Designsystem
+   Markenfarben aus dem Logo: Schwarz + Signalgelb, Schachbrett & Wellen
+------------------------------------------------------------------- */
+:root {
+  --ink: #141311;
+  --ink-2: #26241f;
+  --paper: #faf7f0;
+  --paper-2: #f1ece0;
+  --white: #ffffff;
+  --yellow: #ffd200;
+  --yellow-2: #f5b800;
+  --muted: #5f5b52;
+  --line: rgb(20 19 17 / 0.12);
+  --shadow: 0 1px 2px rgb(20 19 17 / 0.06), 0 8px 24px -8px rgb(20 19 17 / 0.18);
+
+  --font-display: 'Fraunces Variable', Georgia, serif;
+  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --radius: 14px;
+  --wrap: 1160px;
+  --gutter: clamp(16px, 4vw, 32px);
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] { display: none !important; }
+img, video, iframe { max-width: 100%; display: block; }
+img { height: auto; }
+
+a { color: inherit; text-decoration-color: var(--yellow-2); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--ink); }
+
+:focus-visible { outline: 3px solid var(--yellow-2); outline-offset: 3px; border-radius: 4px; }
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 50, 'WONK' 0;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5em;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(2.1rem, 5vw, 3.6rem); font-weight: 700; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 650; }
+h3 { font-size: 1.3rem; font-weight: 650; }
+p { margin: 0 0 1em; text-wrap: pretty; }
+
+.wrap { width: min(100% - 2 * var(--gutter), var(--wrap)); margin-inline: auto; }
+.narrow { width: min(100% - 2 * var(--gutter), 760px); margin-inline: auto; }
+
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.skip-link { position: absolute; left: -999px; top: 8px; background: var(--yellow); padding: 8px 14px; z-index: 100; font-weight: 600; }
+.skip-link:focus { left: 8px; }
+
+/* Schachbrett-Band – Motiv aus dem Logo */
+.checker {
+  --s: 14px;
+  height: calc(var(--s) * 2);
+  background:
+    conic-gradient(var(--ink) 25%, var(--yellow) 0 50%, var(--ink) 0 75%, var(--yellow) 0) 0 0 / calc(var(--s) * 2) calc(var(--s) * 2);
+}
+
+/* Eyebrow / Kicker */
+.kicker {
+  display: inline-flex; align-items: center; gap: 0.5em;
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted);
+}
+.kicker::before { content: ''; width: 18px; height: 3px; background: var(--yellow-2); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5em;
+  padding: 0.8em 1.3em; border-radius: 999px; border: 2px solid var(--ink);
+  font-weight: 650; font-size: 0.98rem; text-decoration: none; cursor: pointer;
+  background: var(--ink); color: var(--yellow);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.btn:hover { transform: translateY(-1px); background: var(--yellow); color: var(--ink); }
+.btn--ghost { background: transparent; color: var(--ink); }
+.btn--ghost:hover { background: var(--ink); color: var(--yellow); }
+.btn--yellow { background: var(--yellow); color: var(--ink); border-color: var(--yellow); }
+.btn--yellow:hover { background: var(--white); border-color: var(--white); }
+
+/* Seitenkopf für Unterseiten */
+.page-head { padding: clamp(40px, 7vw, 80px) 0 clamp(24px, 4vw, 40px); }
+.page-head h1 { margin-top: 0.3em; }
+.page-head .lead { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+
+.section { padding: clamp(40px, 6vw, 72px) 0; }
+
+/* Fliesstext aus Markdown */
+.prose { max-width: 72ch; }
+.prose h2 { margin-top: 1.6em; font-size: clamp(1.35rem, 2.6vw, 1.75rem); }
+.prose h3 { margin-top: 1.4em; }
+.prose > :first-child { margin-top: 0; }
+.prose ul, .prose ol { padding-left: 1.3em; margin: 0 0 1em; }
+.prose li { margin: 0.25em 0; }
+.prose li::marker { color: var(--yellow-2); }
+.prose hr { border: 0; height: 8px; margin: 2.5em 0; width: 64px;
+  background: conic-gradient(var(--ink) 25%, var(--yellow) 0 50%, var(--ink) 0 75%, var(--yellow) 0) 0 0 / 8px 8px; }
+.prose img { border-radius: var(--radius); margin: 1.5em 0; box-shadow: var(--shadow); }
+.prose blockquote { margin: 1.5em 0; padding: 0.2em 0 0.2em 1.2em; border-left: 4px solid var(--yellow); font-style: italic; }
+.prose strong { font-weight: 650; }
+
+.prose table, .table {
+  width: 100%; border-collapse: collapse; margin: 1.5em 0 2em; font-size: 0.97rem;
+  background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+  display: block; overflow-x: auto;
+}
+@media (min-width: 640px) { .prose table, .table { display: table; } }
+.prose th, .prose td { text-align: left; padding: 0.7em 1em; border-bottom: 1px solid var(--line); vertical-align: top; }
+.prose thead th { background: var(--ink); color: var(--paper); font-weight: 600; }
+.prose thead th strong { font-weight: 650; color: var(--yellow); }
+.prose tbody tr:last-child td { border-bottom: 0; }
+.prose tbody tr:nth-child(even) td { background: #fcfbf7; }
+
+/* Karten */
+.card {
+  background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+a.card:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgb(20 19 17 / 0.06), 0 18px 40px -12px rgb(20 19 17 / 0.3); }
+.card__body { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.card__body h3 { margin: 0; }
+.card__body p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+.grid { display: grid; gap: clamp(16px, 2.5vw, 28px); grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+
+.badge {
+  display: inline-block; font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
+  background: var(--yellow); color: var(--ink); padding: 0.2em 0.65em; border-radius: 6px;
+}

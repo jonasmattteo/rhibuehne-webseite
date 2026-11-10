@@ -1,0 +1,134 @@
+---
+import Page from '../layouts/Page.astro';
+import { getCollection } from 'astro:content';
+import { encrypt, getMitgliederPasswort } from '../lib/encrypt';
+import { formatDatum } from '../lib/utils';
+
+const eintraege = (await getCollection('mitglieder')).sort(
+  (a, b) => a.data.reihenfolge - b.data.reihenfolge || (b.data.datum?.getTime() ?? 0) - (a.data.datum?.getTime() ?? 0),
+);
+
+const html = eintraege
+  .map(
+    (e) => `<article class="m-entry">
+      <h2>${e.data.titel}</h2>
+      ${e.data.datum ? `<p class="m-date">${formatDatum(e.data.datum)}</p>` : ''}
+      <div class="prose">${e.rendered?.html ?? ''}</div>
+    </article>`,
+  )
+  .join('\n');
+
+const payload = JSON.stringify(await encrypt(html, getMitgliederPasswort()));
+---
+
+<Page title="Mitgliederbereich" kicker="Verein" lead="Interne Informationen für Mitglieder der Rhibühne Eglisau." noindex>
+  <div id="gate" class="gate card">
+    <form id="login">
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5" fill="var(--yellow)" stroke="var(--ink)" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="var(--ink)" stroke-width="1.6"/></svg>
+      <h2>Dieser Bereich ist passwortgeschützt</h2>
+      <p>Bitte gib das Mitglieder-Passwort ein.</p>
+      <label for="pw" class="visually-hidden">Passwort</label>
+      <div class="row">
+        <input id="pw" type="password" autocomplete="current-password" placeholder="Passwort" required />
+        <button class="btn" type="submit">Öffnen</button>
+      </div>
+      <label class="remember"><input type="checkbox" id="remember" /> Auf diesem Gerät angemeldet bleiben</label>
+      <p id="error" class="error" role="alert" hidden>Das Passwort ist falsch.</p>
+    </form>
+  </div>
+
+  <div id="content" hidden>
+    <div class="toolbar"><button id="logout" class="btn btn--ghost" type="button">Abmelden</button></div>
+    <div id="content-inner"></div>
+  </div>
+
+  <script is:inline id="payload" type="application/json" set:html={payload} />
+</Page>
+
+<style>
+  .gate { max-width: 520px; padding: 32px; }
+  .gate h2 { font-size: 1.5rem; margin-top: 12px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  input[type='password'] { flex: 1; min-width: 180px; font: inherit; padding: 0.75em 1em; border-radius: 999px; border: 2px solid var(--line); background: var(--paper); }
+  input[type='password']:focus { border-color: var(--ink); outline: none; }
+  .remember { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--muted); margin-top: 14px; }
+  .error { color: #b3261e; font-weight: 600; margin: 12px 0 0; }
+  .toolbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  #content-inner :global(.m-entry) { padding: 28px 0; border-top: 1px solid var(--line); }
+  #content-inner :global(.m-date) { color: var(--muted); font-size: 0.9rem; margin-top: -0.4em; }
+  form.busy button { opacity: 0.6; pointer-events: none; }
+</style>
+
+<script>
+  const KEY = 'rhibuehne-mitglieder';
+  const payload = JSON.parse(document.getElementById('payload')!.textContent!);
+  const gate = document.getElementById('gate')!;
+  const content = document.getElementById('content')!;
+  const inner = document.getElementById('content-inner')!;
+  const form = document.getElementById('login') as HTMLFormElement;
+  const error = document.getElementById('error')!;
+  const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+  async function deriveKey(password: string) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: fromB64(payload.salt), iterations: payload.it, hash: 'SHA-256' },
+      base,
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['decrypt'],
+    );
+  }
+
+  async function unlock(key: CryptoKey) {
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(payload.iv) }, key, fromB64(payload.data));
+    inner.innerHTML = new TextDecoder().decode(plain);
+    gate.hidden = true;
+    content.hidden = false;
+  }
+
+  async function saveKey(key: CryptoKey, persistent: boolean) {
+    const raw = await crypto.subtle.exportKey('raw', key);
+    const val = JSON.stringify({ salt: payload.salt, k: btoa(String.fromCharCode(...new Uint8Array(raw))) });
+    try { (persistent ? localStorage : sessionStorage).setItem(KEY, val); } catch {}
+  }
+
+  async function tryStored() {
+    let stored: string | null = null;
+    try { stored = sessionStorage.getItem(KEY) || localStorage.getItem(KEY); } catch {}
+    if (!stored) return;
+    try {
+      const { salt, k } = JSON.parse(stored);
+      if (salt !== payload.salt) throw new Error('alt');
+      const key = await crypto.subtle.importKey('raw', fromB64(k), 'AES-GCM', false, ['decrypt']);
+      await unlock(key);
+    } catch {
+      try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch {}
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    error.hidden = true;
+    form.classList.add('busy');
+    const pw = (document.getElementById('pw') as HTMLInputElement).value;
+    try {
+      const key = await deriveKey(pw);
+      await unlock(key);
+      await saveKey(key, (document.getElementById('remember') as HTMLInputElement).checked);
+    } catch {
+      error.hidden = false;
+    } finally {
+      form.classList.remove('busy');
+    }
+  });
+
+  document.getElementById('logout')!.addEventListener('click', () => {
+    try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch {}
+    inner.innerHTML = '';
+    content.hidden = true;
+    gate.hidden = false;
+  });
+
+  tryStored();
+</script>

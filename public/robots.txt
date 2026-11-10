@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /mitglieder/
+
+Sitemap: https://rhibuehne.ch/sitemap-index.xml

@@ -1,0 +1,120 @@
+---
+import Base from '../layouts/Base.astro';
+import StueckCard from '../components/StueckCard.astro';
+import { Image, getImage } from 'astro:assets';
+import wasser from '../assets/brand/wasser.jpg';
+import { getEinstellung, getStuecke, url } from '../lib/utils';
+
+const start = await getEinstellung('startseite');
+const stuecke = (await getStuecke()).filter((s) => !s.data.zeitraum).slice(0, start.anzahlStuecke);
+const [neuestes] = stuecke;
+const hero = await getImage({ src: wasser, width: 1920, format: 'webp', quality: 70 });
+const absaetze = (t: string) => t.split(/\n\s*\n/).filter(Boolean);
+---
+
+<Base title="Home">
+  <section class="hero" style={`--bg: url('${hero.src}')`}>
+    <div class="wrap hero__inner">
+      <p class="hero__kicker">Rhibühne Eglisau · Laientheater seit 1904</p>
+      <h1>{start.aktuell.titel}</h1>
+      <div class="hero__text">
+        {absaetze(start.aktuell.text).map((p) => <p>{p}</p>)}
+      </div>
+      <div class="hero__actions">
+        <a class="btn btn--yellow" href={url('/tickets')}>Tickets & Reservation</a>
+        {neuestes && <a class="btn btn--ghost-light" href={url(`/archiv/${neuestes.id}/`)}>Zuletzt gespielt: {neuestes.data.titel}</a>}
+      </div>
+    </div>
+    <div class="checker" aria-hidden="true"></div>
+  </section>
+
+  {start.hinweise.length > 0 && (
+    <section class="section">
+      <div class="wrap hinweise">
+        {start.hinweise.map((h) => (
+          <article class="hinweis">
+            {h.bild && (
+              <div class="hinweis__media">
+                <Image src={h.bild} alt={h.titel} width={720} />
+              </div>
+            )}
+            <div class="hinweis__body">
+              <span class="kicker">Aktuell</span>
+              <h2>{h.titel}</h2>
+              {h.text && absaetze(h.text).map((p) => <p>{p}</p>)}
+              {h.link && <a class="btn" href={url(h.link)}>Mehr erfahren</a>}
+              {!h.link && <a class="btn btn--ghost" href={url('/kontakt')}>Kontakt aufnehmen</a>}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="section section--tint">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="kicker">Bühne frei</span>
+          <h2>Unsere letzten Stücke</h2>
+        </div>
+        <a class="btn btn--ghost" href={url('/archiv')}>Ganzes Archiv</a>
+      </div>
+      <div class="grid">
+        {stuecke.map((s) => <StueckCard stueck={s} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap about">
+      <div>
+        <span class="kicker">Wer wir sind</span>
+        <h2>Über 100 Jahre Theaterluft in Eglisau</h2>
+        <p>Der Dramatische Verein Eglisau wurde 1904 gegründet und 1995 in Rhibühne Eglisau umbenannt. In unserem Kleintheater im Schulhaus Steinboden spielen wir mit rund 100 Plätzen jedes Jahr zwölf Vorstellungen.</p>
+        <div class="about__links">
+          <a class="btn" href={url('/ueber-uns')}>Über uns</a>
+          <a class="btn btn--ghost" href={url('/mitglied-werden')}>Mitglied werden</a>
+        </div>
+      </div>
+      <dl class="facts">
+        <div><dt>1904</dt><dd>gegründet</dd></div>
+        <div><dt>~100</dt><dd>Plätze mit freier Sicht</dd></div>
+        <div><dt>12</dt><dd>Vorstellungen pro Saison</dd></div>
+      </dl>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative; color: var(--white); isolation: isolate;
+    background: linear-gradient(180deg, rgb(20 19 17 / 0.55), rgb(20 19 17 / 0.85)), var(--bg) center / cover no-repeat, var(--ink);
+  }
+  .hero__inner { padding: clamp(72px, 12vw, 150px) 0 clamp(56px, 9vw, 110px); max-width: var(--wrap); }
+  .hero__kicker { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--yellow); margin-bottom: 1rem; }
+  .hero h1 { font-size: clamp(2.8rem, 9vw, 6.5rem); font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.3em; color: var(--yellow); }
+  .hero__text { max-width: 58ch; font-size: clamp(1.05rem, 1.6vw, 1.25rem); color: #ece7da; }
+  .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 1.6rem; }
+  .btn--ghost-light { background: transparent; color: var(--white); border-color: rgb(255 255 255 / 0.5); }
+  .btn--ghost-light:hover { background: var(--white); color: var(--ink); border-color: var(--white); }
+  .hero .checker { --s: 12px; }
+
+  .hinweise { display: grid; gap: 32px; }
+  .hinweis { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(24px, 5vw, 64px); align-items: center; }
+  .hinweis__media :global(img) { border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-height: 620px; object-fit: contain; background: var(--paper-2); }
+  .hinweis__body h2 { font-size: clamp(2rem, 4.5vw, 3.2rem); margin-top: 0.3em; }
+  @media (max-width: 760px) { .hinweis { grid-template-columns: 1fr; } }
+
+  .section--tint { background: var(--paper-2); }
+  .section-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .section-head h2 { margin: 0.25em 0 0; }
+
+  .about { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: clamp(24px, 6vw, 80px); align-items: center; }
+  .about__links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 1.2rem; }
+  .facts { display: grid; gap: 14px; margin: 0; }
+  .facts div { background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: 18px 22px; display: flex; align-items: baseline; gap: 16px; }
+  .facts dt { font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; color: var(--yellow); min-width: 3.2ch; line-height: 1; }
+  .facts dd { margin: 0; }
+  @media (max-width: 760px) { .about { grid-template-columns: 1fr; } }
+</style>

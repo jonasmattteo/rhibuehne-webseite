@@ -1,0 +1,245 @@
+# ---------------------------------------------------------------------------
+# Admin-Backend der Rhibühne Eglisau (Sveltia CMS, kompatibel mit Decap CMS)
+# Doku: https://github.com/sveltia/sveltia-cms
+#
+# Jede Änderung im Admin wird als Commit ins GitHub-Repository gespeichert.
+# GitHub Actions baut die Seite danach automatisch neu (dauert ca. 1–2 Minuten).
+# ---------------------------------------------------------------------------
+
+backend:
+  name: github
+  repo: jonasmattteo/rhibuehne-webseite
+  branch: main
+  # Optional: „Mit GitHub anmelden“-Button. Ohne diese Zeile meldet man sich mit
+  # einem persönlichen GitHub-Zugriffstoken an (siehe README, Abschnitt Admin).
+  # base_url: https://sveltia-cms-auth.<dein-account>.workers.dev
+  commit_messages:
+    create: 'Neu: {{collection}} „{{slug}}“'
+    update: 'Bearbeitet: {{collection}} „{{slug}}“'
+    delete: 'Gelöscht: {{collection}} „{{slug}}“'
+    uploadMedia: 'Bild hochgeladen: {{path}}'
+    deleteMedia: 'Bild gelöscht: {{path}}'
+
+site_url: https://rhibuehne.ch
+display_url: https://rhibuehne.ch
+logo_url: logo.png
+locale: de
+
+# Alle Bilder landen in src/assets/uploads und werden von Astro beim Build
+# automatisch optimiert. Astro braucht relative Pfade (../../assets/uploads/…),
+# daher ist der Ordner zusätzlich pro Sammlung relativ angegeben.
+media_folder: src/assets/uploads
+public_folder: /src/assets/uploads
+
+slug:
+  encoding: ascii
+  clean_accents: true
+  sanitize_replacement: '-'
+
+collections:
+  # ------------------------------------------------------------------ Stücke
+  - name: stuecke
+    label: Theaterstücke
+    label_singular: Theaterstück
+    description: Alle Stücke – das neueste erscheint automatisch auf der Startseite und im Archiv.
+    folder: src/content/stuecke
+    media_folder: ../../assets/uploads
+    public_folder: ../../assets/uploads
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{jahr}}-{{titel}}'
+    summary: '{{jahr}} – {{titel}}'
+    sortable_fields: [jahr, titel]
+    fields:
+      - { label: Titel, name: titel, widget: string }
+      - { label: Jahr (Saison), name: jahr, widget: number, value_type: int, min: 1900, max: 2100 }
+      - { label: Zeitraum (optional, z. B. „2001 – 2004“), name: zeitraum, widget: string, required: false }
+      - { label: Titelbild, name: bild, widget: image, required: false, hint: Wird als Vorschaubild und oben auf der Seite angezeigt. }
+      - label: Bildergalerie
+        name: galerie
+        widget: list
+        required: false
+        collapsed: true
+        summary: '{{fields.bild}}'
+        field: { label: Bild, name: bild, widget: image }
+      - { label: Entwurf (nicht veröffentlichen), name: entwurf, widget: boolean, default: false, required: false }
+      - label: Inhalt
+        name: body
+        widget: markdown
+        hint: Beschreibung, Regie, Besetzung (Tabelle) und Spieldaten.
+
+  # --------------------------------------------------------- Vereinsanlässe
+  - name: anlaesse
+    label: Vereinsanlässe
+    label_singular: Vereinsanlass
+    folder: src/content/anlaesse
+    media_folder: ../../assets/uploads
+    public_folder: ../../assets/uploads
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{year}}-{{titel}}'
+    summary: '{{datum}} – {{titel}}'
+    sortable_fields: [datum, titel]
+    fields:
+      - { label: Titel, name: titel, widget: string }
+      - { label: Datum, name: datum, widget: datetime, time_format: false, date_format: DD.MM.YYYY, format: YYYY-MM-DD }
+      - { label: Titelbild, name: bild, widget: image, required: false, hint: Ohne Titelbild wird das erste Galeriebild verwendet. }
+      - label: Bildergalerie
+        name: galerie
+        widget: list
+        required: false
+        collapsed: true
+        field: { label: Bild, name: bild, widget: image }
+      - { label: Entwurf (nicht veröffentlichen), name: entwurf, widget: boolean, default: false, required: false }
+      - { label: Text, name: body, widget: markdown, required: false }
+
+  # ------------------------------------------------------------------ Seiten
+  - name: seiten
+    label: Seiten
+    label_singular: Seite
+    description: Feste Seiten der Webseite (Tickets, Über uns, Kontakt …).
+    folder: src/content/seiten
+    media_folder: ../../assets/uploads
+    public_folder: ../../assets/uploads
+    extension: md
+    format: frontmatter
+    create: false
+    delete: false
+    fields:
+      - { label: Titel, name: titel, widget: string }
+      - label: Bereich
+        name: bereich
+        widget: select
+        options:
+          - { label: Theater, value: theater }
+          - { label: Verein, value: verein }
+          - { label: Infos, value: infos }
+          - { label: Kontakt, value: kontakt }
+      - { label: Kurzbeschreibung, name: beschreibung, widget: text, required: false }
+      - { label: Bild, name: bild, widget: image, required: false }
+      - label: Eventfrog-Link (nur Tickets)
+        name: eventfrog
+        widget: string
+        required: false
+        hint: Embed-Link von Eventfrog, z. B. https://embed.eventfrog.ch/de/p/gruppen/…
+      - label: Bildergalerie
+        name: galerie
+        widget: list
+        required: false
+        collapsed: true
+        field: { label: Bild, name: bild, widget: image }
+      - { label: Inhalt, name: body, widget: markdown }
+
+  # ------------------------------------------------------- Mitgliederbereich
+  - name: mitglieder
+    label: Mitgliederbereich 🔒
+    label_singular: Mitglieder-Beitrag
+    description: >-
+      Nur für Mitglieder. Die Inhalte werden beim Veröffentlichen mit dem
+      Mitglieder-Passwort verschlüsselt. Dateien (PDF) sind über ihren Link erreichbar.
+    folder: src/content/mitglieder
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{titel}}'
+    summary: '{{titel}}'
+    media_folder: /public/uploads/mitglieder
+    public_folder: /uploads/mitglieder
+    fields:
+      - { label: Titel, name: titel, widget: string }
+      - { label: Datum, name: datum, widget: datetime, time_format: false, date_format: DD.MM.YYYY, format: YYYY-MM-DD, required: false }
+      - { label: Reihenfolge (kleiner = weiter oben), name: reihenfolge, widget: number, value_type: int, default: 10 }
+      - { label: Inhalt, name: body, widget: markdown, hint: Für PDF-Dateien „Datei“ bzw. Link einfügen. }
+
+  # ------------------------------------------------------------ Einstellungen
+  - name: einstellungen
+    label: Einstellungen & Listen
+    media_folder: ../../assets/uploads
+    public_folder: ../../assets/uploads
+    editor: { preview: false }
+    files:
+      - name: startseite
+        label: Startseite
+        file: src/content/einstellungen/startseite.json
+        fields:
+          - label: Aktuell (grosser Titel oben)
+            name: aktuell
+            widget: object
+            fields:
+              - { label: Titel, name: titel, widget: string }
+              - { label: Text, name: text, widget: text, hint: Absätze mit einer Leerzeile trennen. }
+          - label: Hinweise / Aktuelles
+            name: hinweise
+            widget: list
+            required: false
+            summary: '{{fields.titel}}'
+            fields:
+              - { label: Titel, name: titel, widget: string }
+              - { label: Text, name: text, widget: text, required: false }
+              - { label: Bild / Plakat, name: bild, widget: image, required: false }
+              - { label: Link (optional, z. B. /tickets), name: link, widget: string, required: false }
+          - { label: Anzahl Stücke auf der Startseite, name: anzahlStuecke, widget: number, value_type: int, default: 5, min: 0, max: 12 }
+
+      - name: vorstand
+        label: Vorstand
+        file: src/content/einstellungen/vorstand.json
+        fields:
+          - { label: Überschrift, name: titel, widget: string }
+          - label: Mitglieder
+            name: mitglieder
+            widget: list
+            summary: '{{fields.funktion}}: {{fields.name}}'
+            fields:
+              - { label: Funktion, name: funktion, widget: string }
+              - { label: Name, name: name, widget: string }
+              - { label: E-Mail, name: email, widget: string, required: false }
+              - { label: Foto, name: foto, widget: image, required: false }
+
+      - name: sponsoren
+        label: Sponsoren & Gönner
+        file: src/content/einstellungen/sponsoren.json
+        fields:
+          - { label: Überschrift, name: titel, widget: string }
+          - { label: Text, name: text, widget: text, required: false }
+          - label: Sponsoren
+            name: sponsoren
+            widget: list
+            summary: '{{fields.name}}'
+            fields:
+              - { label: Name, name: name, widget: string, required: false }
+              - { label: Logo, name: logo, widget: image }
+              - { label: Webseite, name: url, widget: string, required: false }
+
+      - name: links
+        label: Links
+        file: src/content/einstellungen/links.json
+        fields:
+          - { label: Überschrift, name: titel, widget: string }
+          - label: Gruppen
+            name: gruppen
+            widget: list
+            summary: '{{fields.titel}}'
+            fields:
+              - { label: Titel, name: titel, widget: string }
+              - label: Links
+                name: links
+                widget: list
+                summary: '{{fields.name}}'
+                fields:
+                  - { label: Name, name: name, widget: string }
+                  - { label: URL, name: url, widget: string }
+
+      - name: allgemein
+        label: Allgemein (Kontakt & Fusszeile)
+        file: src/content/einstellungen/allgemein.json
+        fields:
+          - { label: Vereinsname, name: vereinsname, widget: string }
+          - { label: Slogan, name: slogan, widget: string, required: false }
+          - { label: Kontakt-E-Mail, name: email, widget: string }
+          - { label: Instagram-Link, name: instagram, widget: string, required: false }
+          - { label: Facebook-Link, name: facebook, widget: string, required: false }
+          - { label: Adresse Theater, name: theaterAdresse, widget: text }
+          - { label: Postadresse Verein, name: postAdresse, widget: text }
+          - { label: Kartenlink, name: kartenLink, widget: string, required: false }

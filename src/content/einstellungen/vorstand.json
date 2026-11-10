@@ -1,0 +1,35 @@
+{
+  "titel": "Unser Vorstand",
+  "mitglieder": [
+    {
+      "funktion": "Präsident",
+      "name": "Patrik Schibli",
+      "email": "patrik.schibli@rhibuehne.ch",
+      "foto": "../../assets/uploads/2020/01/Vorstand_Patrik.jpg"
+    },
+    {
+      "funktion": "Kassierin",
+      "name": "Ladina Schaad",
+      "email": "ladina.schaad@rhibuehne.ch",
+      "foto": "../../assets/uploads/2021/07/Ladina_Vorstand.jpg"
+    },
+    {
+      "funktion": "Beisitzer",
+      "name": "Werner Zimmermann",
+      "email": "werner.zimmermann@rhibuehne.ch",
+      "foto": "../../assets/uploads/2020/01/Vorstand_Werner.jpg"
+    },
+    {
+      "funktion": "Aktuar",
+      "name": "Alfons Müller",
+      "email": "alfons.mueller@rhibuehne.ch",
+      "foto": "../../assets/uploads/2020/01/Vorstand_Alfons.jpg"
+    },
+    {
+      "funktion": "Beisitzerin",
+      "name": "Lisa Mühlemann",
+      "email": "lisa.muehlemann@rhibuehne.ch",
+      "foto": "../../assets/uploads/2020/01/Vorstand_Lisa.jpg"
+    }
+  ]
+}

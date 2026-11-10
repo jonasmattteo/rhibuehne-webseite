@@ -1,0 +1,155 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/brand/logo.png';
+import { navigation } from '../lib/navigation';
+import { url } from '../lib/utils';
+
+const current = Astro.url.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '').replace(/\/$/, '') || '/';
+const isActive = (href?: string) => !!href && (href === '/' ? current === '/' : current.startsWith(href));
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a href={url('/')} class="brand" aria-label="Rhibühne Eglisau – Startseite">
+      <Image src={logo} alt="" width={120} height={74} loading="eager" />
+      <span class="brand__text">Rhibühne<br /><small>Eglisau</small></span>
+    </a>
+
+    <button class="menu-toggle" aria-expanded="false" aria-controls="hauptnavigation">
+      <span class="menu-toggle__icon" aria-hidden="true"></span>
+      <span class="menu-toggle__label">Menü</span>
+    </button>
+
+    <nav id="hauptnavigation" class="nav" aria-label="Hauptnavigation">
+      <ul class="nav__list">
+        {navigation.filter((i) => i.label !== 'Archiv').map((item) =>
+          item.children ? (
+            <li class="nav__item has-sub">
+              <button class:list={['nav__link', { active: item.children.some((c) => isActive(c.href)) }]} aria-expanded="false">
+                {item.label}
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
+              </button>
+              <ul class="sub">
+                {item.children.map((c) => (
+                  <li><a href={url(c.href)} aria-current={isActive(c.href) ? 'page' : undefined}>{c.label}</a></li>
+                ))}
+              </ul>
+            </li>
+          ) : (
+            <li class="nav__item">
+              <a class:list={['nav__link', { active: isActive(item.href) }]} href={url(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
+            </li>
+          ),
+        )}
+        <li class="nav__item nav__cta"><a class="btn" href={url('/tickets')}>Tickets</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgb(250 247 240 / 0.92);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 76px; }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand :global(img) { width: 92px; height: auto; }
+  .brand__text { font-family: var(--font-display); font-weight: 750; font-size: 1.25rem; line-height: 1; letter-spacing: -0.01em; }
+  .brand__text small { font-family: var(--font-body); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+
+  .nav__list { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 2px; }
+  .nav__link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: inherit; font-size: 0.97rem; font-weight: 550; color: var(--ink);
+    background: none; border: 0; cursor: pointer; text-decoration: none;
+    padding: 10px 14px; border-radius: 999px;
+  }
+  .nav__link:hover, .has-sub:hover > .nav__link { background: var(--paper-2); }
+  .nav__link.active { box-shadow: inset 0 -3px 0 var(--yellow-2); border-radius: 0; }
+  .nav__link svg { transition: transform 0.2s; }
+  .nav__cta { margin-left: 10px; }
+  .nav__cta .btn { padding: 0.6em 1.2em; }
+
+  .has-sub { position: relative; }
+  .sub {
+    list-style: none; margin: 0; padding: 8px;
+    position: absolute; top: calc(100% + 6px); left: 0; min-width: 240px;
+    background: var(--white); border-radius: 12px; box-shadow: var(--shadow); border: 1px solid var(--line);
+    opacity: 0; visibility: hidden; transform: translateY(-4px); transition: 0.15s ease;
+  }
+  .sub::before { content: ''; position: absolute; inset: -10px 0 auto; height: 10px; }
+  .sub a { display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; font-size: 0.95rem; }
+  .sub a:hover, .sub a[aria-current='page'] { background: var(--paper-2); }
+  .sub a[aria-current='page'] { font-weight: 650; }
+  @media (hover: hover) and (min-width: 961px) {
+    .has-sub:hover .sub, .has-sub:focus-within .sub { opacity: 1; visibility: visible; transform: none; }
+  }
+  .has-sub.open .sub { opacity: 1; visibility: visible; transform: none; }
+  .has-sub.open .nav__link svg { transform: rotate(180deg); }
+
+  .menu-toggle {
+    display: none; align-items: center; gap: 10px; font: inherit; font-weight: 600;
+    background: var(--ink); color: var(--yellow); border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer;
+  }
+  .menu-toggle__icon, .menu-toggle__icon::before, .menu-toggle__icon::after {
+    display: block; width: 18px; height: 2px; background: currentColor; border-radius: 2px; position: relative; transition: 0.2s;
+  }
+  .menu-toggle__icon::before, .menu-toggle__icon::after { content: ''; position: absolute; left: 0; }
+  .menu-toggle__icon::before { top: -6px; }
+  .menu-toggle__icon::after { top: 6px; }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__icon { background: transparent; }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__icon::before { top: 0; transform: rotate(45deg); }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__icon::after { top: 0; transform: rotate(-45deg); }
+
+  @media (max-width: 960px) {
+    .menu-toggle { display: inline-flex; }
+    .nav {
+      position: absolute; left: 0; right: 0; top: 100%;
+      background: var(--paper); border-bottom: 1px solid var(--line); box-shadow: 0 20px 30px -20px rgb(0 0 0 / 0.3);
+      max-height: calc(100dvh - 76px); overflow-y: auto;
+      display: none;
+    }
+    .nav.open { display: block; }
+    .nav__list { flex-direction: column; align-items: stretch; padding: 12px var(--gutter) 24px; gap: 0; }
+    .nav__link { width: 100%; justify-content: space-between; padding: 14px 4px; border-radius: 0; border-bottom: 1px solid var(--line); font-size: 1.05rem; }
+    .nav__link.active { box-shadow: none; font-weight: 700; }
+    .sub { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; border: 0; background: transparent; padding: 4px 0 8px 12px; display: none; min-width: 0; }
+    .has-sub.open .sub { display: block; }
+    .nav__cta { margin: 18px 0 0; }
+    .nav__cta .btn { width: 100%; justify-content: center; }
+  }
+  @media (max-width: 420px) { .brand__text { display: none; } }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+  const nav = document.getElementById('hauptnavigation');
+  toggle?.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') !== 'true';
+    toggle.setAttribute('aria-expanded', String(open));
+    nav?.classList.toggle('open', open);
+  });
+  document.querySelectorAll<HTMLButtonElement>('.has-sub > button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const li = btn.parentElement!;
+      const open = !li.classList.contains('open');
+      document.querySelectorAll('.has-sub.open').forEach((el) => {
+        if (el !== li) { el.classList.remove('open'); el.querySelector('button')?.setAttribute('aria-expanded', 'false'); }
+      });
+      li.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (window.matchMedia('(max-width: 960px)').matches) return;
+    if (!(e.target as Element).closest('.has-sub')) {
+      document.querySelectorAll('.has-sub.open').forEach((el) => { el.classList.remove('open'); el.querySelector('button')?.setAttribute('aria-expanded', 'false'); });
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') document.querySelectorAll('.has-sub.open').forEach((el) => el.classList.remove('open'));
+  });
+</script>

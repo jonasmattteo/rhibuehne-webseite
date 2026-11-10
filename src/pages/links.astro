@@ -1,0 +1,32 @@
+---
+import Page from '../layouts/Page.astro';
+import { getEinstellung } from '../lib/utils';
+
+const l = await getEinstellung('links');
+---
+
+<Page title={l.titel} kicker="Infos" lead="Befreundete Bühnen, Verbände und Theaterverlage.">
+  <div class="groups">
+    {l.gruppen.map((g) => (
+      <section class="card group">
+        <h2>{g.titel}</h2>
+        <ul>
+          {g.links.map((link) => (
+            <li><a href={link.url} target="_blank" rel="noopener">{link.name}<span aria-hidden="true">↗</span></a></li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</Page>
+
+<style>
+  .groups { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+  .group { padding: 24px 26px; }
+  .group h2 { font-size: 1.35rem; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li a { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); text-decoration: none; font-weight: 500; }
+  li:last-child a { border-bottom: 0; }
+  li a:hover { color: var(--muted); }
+  li a span { color: var(--yellow-2); font-weight: 700; }
+</style>

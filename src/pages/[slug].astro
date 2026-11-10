@@ -1,0 +1,57 @@
+---
+import Page from '../layouts/Page.astro';
+import Gallery from '../components/Gallery.astro';
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import { getEinstellung } from '../lib/utils';
+
+export async function getStaticPaths() {
+  const seiten = await getCollection('seiten');
+  return seiten.map((seite) => ({ params: { slug: seite.id }, props: { seite } }));
+}
+
+const { seite } = Astro.props;
+const { Content } = await render(seite);
+const { titel, bereich, beschreibung, bild, eventfrog, galerie } = seite.data;
+const kicker = { theater: 'Theater', verein: 'Verein', infos: 'Infos', kontakt: 'Kontakt' }[bereich];
+const allgemein = seite.id === 'kontakt' ? await getEinstellung('allgemein') : null;
+---
+
+<Page title={titel} kicker={kicker} lead={beschreibung} image={bild}>
+  <div class:list={['layout', { 'layout--split': !!allgemein }]}>
+    <div>
+      {bild && <Image src={bild} alt="" width={1200} class="cover" />}
+      <div class="prose"><Content /></div>
+      {eventfrog && (
+        <div class="embed">
+          <iframe src={eventfrog} title="Ticket-Reservation über Eventfrog" loading="lazy" width="100%" height="900"></iframe>
+          <p class="hint">Die Reservation läuft über <a href={eventfrog} target="_blank" rel="noopener">Eventfrog</a>. Falls das Formular nicht angezeigt wird, öffne den Link direkt.</p>
+        </div>
+      )}
+    </div>
+    {allgemein && (
+      <aside class="map">
+        <iframe
+          title="Karte: Schulhaus Steinboden, Eglisau"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=8.5245%2C47.5690%2C8.5355%2C47.5740&layer=mapnik&marker=47.5715%2C8.5299"
+          loading="lazy"
+          width="100%"
+          height="420"></iframe>
+        {allgemein.kartenLink && <a class="btn btn--ghost" href={allgemein.kartenLink} target="_blank" rel="noopener">Grössere Karte / Route planen</a>}
+      </aside>
+    )}
+  </div>
+  <Gallery images={galerie} title={`Bilder – ${titel}`} />
+</Page>
+
+<style>
+  .layout--split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 64px); align-items: start; }
+  @media (max-width: 860px) { .layout--split { grid-template-columns: 1fr; } }
+  .cover { border-radius: var(--radius); margin-bottom: 2rem; box-shadow: var(--shadow); }
+  .embed { margin-top: 2rem; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .embed iframe { border: 0; min-height: 70vh; }
+  .hint { font-size: 0.9rem; color: var(--muted); padding: 12px 18px; margin: 0; border-top: 1px solid var(--line); }
+  .map { display: grid; gap: 14px; justify-items: start; position: sticky; top: 100px; }
+  .map iframe { border: 0; border-radius: var(--radius); box-shadow: var(--shadow); background: var(--paper-2); }
+  .prose :global(h2) { font-size: 1.25rem; }
+</style>

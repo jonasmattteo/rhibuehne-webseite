@@ -1,0 +1,59 @@
+{
+  "titel": "Links",
+  "gruppen": [
+    {
+      "titel": "Theater Links",
+      "links": [
+        {
+          "name": "Kultur Züri-Unterland",
+          "url": "http://www.kultur-zueri-unterland.ch/"
+        },
+        {
+          "name": "Zentralverband Schweizer Volkstheater",
+          "url": "http://www.volkstheater.ch/"
+        },
+        {
+          "name": "Regionalverband Zürich / Glarus",
+          "url": "http://www.rva.ch/"
+        },
+        {
+          "name": "Theater-Zytig",
+          "url": "http://www.theater-zytig.ch/"
+        },
+        {
+          "name": "Theaterverlag Elgg",
+          "url": "http://www.theaterverlage.ch/"
+        },
+        {
+          "name": "Theaterverlag Breuninger",
+          "url": "http://www.breuninger.ch/"
+        }
+      ]
+    },
+    {
+      "titel": "Andere Theatervereine RVA",
+      "links": [
+        {
+          "name": "Spielleute von Seldwyla, Bülach",
+          "url": "http://www.spielleutevonseldwyla.ch/"
+        },
+        {
+          "name": "Cheernagel-Bühne, Bachenbülach",
+          "url": "http://www.cheernagel.ch/"
+        },
+        {
+          "name": "Dachbühne, Oberglatt",
+          "url": "http://www.dachbuehne.ch/"
+        },
+        {
+          "name": "Theater Altstetten",
+          "url": "http://www.theater-altstetten.ch/"
+        },
+        {
+          "name": "Dramatischer Verein Stadel",
+          "url": "http://www.theaterstadel.ch/"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+---
+import Page from '../layouts/Page.astro';
+import { url } from '../lib/utils';
+---
+
+<Page title="Vorhang zu!" kicker="Fehler 404" lead="Diese Seite gibt es leider nicht (mehr). Vielleicht wurde sie beim Umbau der Webseite verschoben." noindex>
+  <p><a class="btn" href={url('/')}>Zur Startseite</a> <a class="btn btn--ghost" href={url('/archiv')}>Zum Archiv</a></p>
+</Page>

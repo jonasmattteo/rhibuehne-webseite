@@ -1,0 +1,33 @@
+---
+import EntryDetail from '../../components/EntryDetail.astro';
+import { render } from 'astro:content';
+import { formatDatum, getAnlaesse, teaser } from '../../lib/utils';
+
+export async function getStaticPaths() {
+  const anlaesse = await getAnlaesse();
+  return anlaesse.map((anlass, i) => ({
+    params: { slug: anlass.id },
+    props: { anlass, prev: anlaesse[i - 1], next: anlaesse[i + 1] },
+  }));
+}
+
+const { anlass, prev, next } = Astro.props;
+const { Content } = await render(anlass);
+const { titel, datum, bild, galerie } = anlass.data;
+const nav = (a?: typeof anlass) => a && { href: `/anlaesse/${a.id}/`, label: a.data.titel };
+---
+
+<EntryDetail
+  title={titel}
+  meta={formatDatum(datum)}
+  kicker="Vereinsanlass"
+  backHref="/anlaesse"
+  backLabel="Alle Vereinsanlässe"
+  bild={bild}
+  galerie={galerie}
+  description={teaser(anlass.body, 160) || `${titel} – Vereinsanlass der Rhibühne Eglisau`}
+  prev={nav(prev)}
+  next={nav(next)}
+>
+  <Content />
+</EntryDetail>

@@ -1,0 +1,36 @@
+---
+import Page from '../layouts/Page.astro';
+import { Image } from 'astro:assets';
+import { getEinstellung, url } from '../lib/utils';
+
+const s = await getEinstellung('sponsoren');
+---
+
+<Page title="Sponsoren & Gönner" kicker="Verein" lead={s.titel}>
+  {s.text && <p class="prose">{s.text}</p>}
+  <ul class="logos">
+    {s.sponsoren.map((sp) => {
+      const img = <Image src={sp.logo} alt={sp.name || 'Sponsor'} width={480} />;
+      return (
+        <li>
+          {sp.url ? <a href={sp.url} target="_blank" rel="noopener" title={sp.name}>{img}</a> : <div title={sp.name}>{img}</div>}
+        </li>
+      );
+    })}
+  </ul>
+  <aside class="cta">
+    <h2>Möchten Sie uns unterstützen?</h2>
+    <p>Wir freuen uns über jede Gönnerin, jeden Gönner und jeden Sponsor, der unser Laientheater möglich macht.</p>
+    <a class="btn btn--yellow" href={url('/kontakt')}>Kontakt aufnehmen</a>
+  </aside>
+</Page>
+
+<style>
+  .logos { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+  .logos li > * { display: grid; place-items: center; height: 100%; min-height: 150px; padding: 20px; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .logos :global(img) { max-height: 130px; width: auto; object-fit: contain; }
+  .logos a { transition: transform 0.2s; }
+  .logos a:hover { transform: translateY(-3px); }
+  .cta { margin-top: 56px; background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: clamp(28px, 5vw, 48px); }
+  .cta h2 { color: var(--yellow); }
+</style>

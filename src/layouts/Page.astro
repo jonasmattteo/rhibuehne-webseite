@@ -1,0 +1,28 @@
+---
+import Base from './Base.astro';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  title: string;
+  kicker?: string;
+  lead?: string;
+  description?: string;
+  image?: ImageMetadata;
+  noindex?: boolean;
+}
+const { title, kicker, lead, description, image, noindex } = Astro.props;
+---
+
+<Base title={title} description={description ?? lead} image={image} noindex={noindex}>
+  <header class="page-head">
+    <div class="wrap">
+      {kicker && <span class="kicker">{kicker}</span>}
+      <h1>{title}</h1>
+      {lead && <p class="lead">{lead}</p>}
+      <slot name="head" />
+    </div>
+  </header>
+  <div class="wrap page-body">
+    <slot />
+  </div>
+</Base>
